@@ -161,7 +161,7 @@ export default function Login() {
         <div style={{ height: '1px', backgroundColor: '#27272a', margin: '32px 0 24px 0' }}></div>
 
         <p style={{ textAlign: 'center', color: '#a1a1aa', fontSize: '14px', margin: 0 }}>
-          Don't have an account? <Link to="/register" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Log in</Link> {/*[cite: 1] */}
+          Don't have an account? <Link to="/register" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Sign up</Link> {/*[cite: 1] */}
         </p>
       </div>
     </div>
