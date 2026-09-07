@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const staffschema = new mongoose.Schema({
+const staffSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
@@ -12,20 +12,32 @@ const staffschema = new mongoose.Schema({
     },
     name: {
         type: String,
-        default: 'New user'
+        default: 'New User'
     },
-    department:{
+    department: {
         type: String,
         default: 'Unassigned'
     },
     role: {
         type: String,
-        default: 'Student'
+        default: 'student'
     },
-    checkedin: {
+    checkedIn: {
         type: Boolean,
         default: false
+    },
+    otp: { 
+        type: String,
+        default: null
+    },
+    otpExpiry: { 
+        type: Date,
+        default: null
+    },
+    isVerified: { 
+        type: Boolean, 
+        default: false 
     }
 });
 
-module.exports = mongoose.model('Staff', staffschema);
+module.exports = mongoose.model('Staff', staffSchema);
