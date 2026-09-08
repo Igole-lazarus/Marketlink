@@ -6,15 +6,20 @@ export default function OtpVerification() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Retrieve the email passed from the Login page
-  const email = location.state?.email;
+  // Retrieve the email passed from the Login page or fallback to sessionStorage
+  const email = location.state?.email || sessionStorage.getItem('otp_email');
 
   useEffect(() => {
+    // Save email to sessionStorage so it doesn't disappear on page refresh
+    if (location.state?.email) {
+      sessionStorage.setItem('otp_email', location.state.email);
+    }
+    
     // If someone navigates to /otp-verification directly without logging in, send them back
     if (!email) {
       navigate('/login');
     }
-  }, [email, navigate]);
+  }, [email, location.state, navigate]);
 
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
@@ -28,6 +33,10 @@ export default function OtpVerification() {
 
       if (response.ok) {
         localStorage.setItem('token', data.token);
+        
+        // Clean up sessionStorage after successful login
+        sessionStorage.removeItem('otp_email');
+        
         alert("Login successful!");
         navigate('/dashboard'); // Route to your protected app area
       } else {
@@ -38,7 +47,14 @@ export default function OtpVerification() {
     }
   };
 
-  if (!email) return null; // Prevent flicker before redirect
+  // Prevent flicker/blank white screen by rendering a message instead of returning null
+  if (!email) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F9FAFB' }}>
+        <p style={{ color: '#6B7280', fontSize: '16px' }}>Redirecting to login...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{
