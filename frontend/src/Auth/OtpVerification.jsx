@@ -1,60 +1,57 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import axios from 'axios';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 export default function OtpVerification() {
   const [otp, setOtp] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Retrieve the email passed from the Login page or fallback to sessionStorage
-  const email = location.state?.email || sessionStorage.getItem('otp_email');
+  // Retrieve the email passed from the Login or Register page
+  const email = location.state?.email;
 
   useEffect(() => {
-    // Save email to sessionStorage so it doesn't disappear on page refresh
-    if (location.state?.email) {
-      sessionStorage.setItem('otp_email', location.state.email);
-    }
-    
     // If someone navigates to /otp-verification directly without logging in, send them back
     if (!email) {
       navigate('/login');
     }
-  }, [email, location.state, navigate]);
+  }, [email, navigate]);
 
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp }),
+      const response = await axios.post(`${BACKEND_URL}/api/auth/verify-otp`, {
+        email,
+        otp,
+      }, {
+        withCredentials: true,
+        // NEW: This header tells Ngrok to skip the HTML warning page so the cookie isn't blocked
+        headers: {
+          'ngrok-skip-browser-warning': 'true'
+        }
       });
-      const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        
-        // Clean up sessionStorage after successful login
-        sessionStorage.removeItem('otp_email');
-        
-        alert("Login successful!");
-        navigate('/dashboard'); // Route to your protected app area
-      } else {
-        alert(`Verification failed: ${data.error || 'Invalid code'}`);
+      const data = response.data;
+
+      // Save the token exactly as the dashboard expects it 
+      if (data.token) {
+        localStorage.setItem('jwt_token', data.token);
       }
+      
+      navigate('/dashboard'); 
     } catch (error) {
-      alert("Could not connect to the server.");
+      if (error.response) {
+        // Server returned 4xx or 5xx status code
+        alert(`Verification failed: ${error.response.data?.error || error.response.data?.message || 'Invalid code'}`);
+      } else {
+        alert("Could not connect to the server.");
+      }
     }
   };
 
-  // Prevent flicker/blank white screen by rendering a message instead of returning null
-  if (!email) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F9FAFB' }}>
-        <p style={{ color: '#6B7280', fontSize: '16px' }}>Redirecting to login...</p>
-      </div>
-    );
-  }
+  if (!email) return null; // Prevent flicker before redirect
 
   return (
     <div style={{

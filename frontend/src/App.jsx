@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Auth/Login';
 import Register from './Auth/Register';
-import OtpVerification from './Auth/OtpVerification'; // Make sure this path matches your folder structure
+import OtpVerification from './Auth/OtpVerification'; // Adjust path if needed
 import TestDashboard from './pages/TestDashboard';
-import './App.css'; // You can keep your existing CSS file
+import './App.css'; 
 
 function App() {
   return (
