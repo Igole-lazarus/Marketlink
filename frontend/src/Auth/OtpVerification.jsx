@@ -39,6 +39,10 @@ export default function OtpVerification() {
       if (data.token) {
         localStorage.setItem('jwt_token', data.token);
       }
+
+      if (data.user) {
+        localStorage.setItem('user_data', JSON.stringify(data.user));
+      }
       
       navigate('/dashboard'); 
     } catch (error) {
