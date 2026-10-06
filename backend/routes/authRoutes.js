@@ -32,13 +32,13 @@ router.get('/admin/users', protect, authorize('admin'), async(req, res) => {
     }
 });
 
-// Instructor & Admin Shared Routes
-router.get('/courses/manage', protect, authorize('instructor', 'admin'), (req, res) => {
-    res.json({ message: 'Instructor course management dashboard content' });
+// Seller & Admin Shared Routes
+router.get('/products/manage', protect, authorize('seller', 'admin'), (req, res) => {
+    res.json({ message: 'Seller product management dashboard content' });
 });
 
-// Student, Instructor, & Admin Accessible Route
-router.get('/student/profile', protect, authorize('student', 'instructor', 'admin'), (req, res) => {
+// Buyer, Seller, & Admin Accessible Route
+router.get('/user/profile', protect, authorize('buyer', 'seller', 'admin'), (req, res) => {
     res.json({ message: `Access granted for ${req.user.role}`, user: req.user });
 });
 

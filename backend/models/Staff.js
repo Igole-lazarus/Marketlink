@@ -29,12 +29,12 @@ const staffSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        // Enforce strict roles: admin, instructor, student
+        // Enforce the supported account roles.
         enum: {
-            values: ['admin', 'instructor', 'student'],
+            values: ['admin', 'seller', 'buyer'],
             message: '{VALUE} is not a valid role'
         },
-        default: 'student' // Least privilege principle
+        default: 'buyer' // Least privilege principle
     },
     checkedIn: {
         type: Boolean,

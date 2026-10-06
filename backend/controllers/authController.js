@@ -24,8 +24,8 @@ exports.registerStaff = async(req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
         const otp = generateOTP();
 
-        // Allow selection of role, but ensure it adheres to valid values; fallback to 'student'
-        const assignedRole = ['admin', 'instructor', 'student'].includes(role) ? role : 'student';
+        // Allow selection only from supported roles; default to 'buyer'.
+        const assignedRole = ['admin', 'seller', 'buyer'].includes(role) ? role : 'buyer';
 
         const newStaff = new Staff({
             email,
@@ -67,6 +67,10 @@ exports.loginStaff = async(req, res) => {
         const isMatch = await bcrypt.compare(password, staff.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        if (!['admin', 'seller', 'buyer'].includes(staff.role)) {
+            staff.role = 'buyer';
         }
 
         const otp = generateOTP();

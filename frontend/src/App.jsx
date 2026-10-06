@@ -6,8 +6,8 @@ import './App.css';
 
 // Role-Specific Dashboards
 import AdminDashboard from './pages/admin/Dashboard';
-import InstructorDashboard from './pages/instructor/Dashboard';
-import StudentDashboard from './pages/student/Dashboard';
+import BuyerDashboard from './pages/buyer/Dashboard';
+import SellerDashboard from './pages/seller/Dashboard';
 
 // Security Component
 import ProtectedRoute from './components/ProtectedRoute';
@@ -45,18 +45,18 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
 
-        {/* Instructor Portal */}
-        <Route element={<ProtectedRoute allowedRoles={['instructor', 'admin']} />}>
-          <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
+        {/* Seller Portal */}
+        <Route element={<ProtectedRoute allowedRoles={['seller', 'admin']} />}>
+          <Route path="/seller/dashboard" element={<SellerDashboard />} />
         </Route>
 
-        {/* Student Portal (Formerly TestDashboard) */}
-        <Route element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']} />}>
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
+        {/* Buyer Portal (Formerly Student Portal) */}
+        <Route element={<ProtectedRoute allowedRoles={['buyer', 'seller', 'deliver', 'admin']} />}>
+          <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
         </Route>
 
         {/* Fallback for the old dashboard path */}
-        <Route path="/dashboard" element={<Navigate to="/student/dashboard" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/buyer/dashboard" replace />} />
         
         {/* 404 Route */}
         <Route path="*" element={<div style={{ textAlign: 'center', marginTop: '100px' }}><h1>404 - Page Not Found</h1></div>} />
