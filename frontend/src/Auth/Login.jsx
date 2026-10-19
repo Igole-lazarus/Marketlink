@@ -20,7 +20,6 @@ export default function Login() {
         password,
       }, {
         withCredentials: true,
-        // NEW: This header tells Ngrok to skip the HTML warning page and let the request through to your Node server.
         headers: {
           'ngrok-skip-browser-warning': 'true' 
         }
@@ -28,9 +27,7 @@ export default function Login() {
 
       const data = response.data;
 
-      // Checks if the server provided a JWT in the response data.
       if (data.token) {
-        // Saves the JWT into the browser's localStorage. This establishes the second security layer.
         localStorage.setItem('jwt_token', data.token);
       }
 
@@ -41,7 +38,6 @@ export default function Login() {
       }
     } catch (error) {
       if (error.response) {
-        // Server returned 4xx or 5xx status code
         alert(`Login failed: ${error.response.data?.message || error.response.data?.error || 'Invalid credentials'}`);
       } else {
         alert("Could not connect to the server.");
@@ -82,7 +78,12 @@ export default function Login() {
             </div>
           </div>
           <div style={{ textAlign: 'left' }}>
-            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Password</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label style={{ fontSize: '14px', fontWeight: '600', color: '#374151', margin: 0 }}>Password</label>
+              <Link to="/forgot-password" style={{ fontSize: '13px', fontWeight: '500', color: '#2563EB', textDecoration: 'none' }}>
+                Forgot Password?
+              </Link>
+            </div>
             <div style={{ position: 'relative' }}>
               <input type={showPassword ? 'text' : 'password'} placeholder="••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required 
                 style={{ width: '100%', height: '46px', paddingLeft: '14px', paddingRight: '42px', borderRadius: '10px', border: '1px solid #D1D5DB', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}

@@ -5,6 +5,7 @@ import axios from 'axios';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 export default function Register() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -40,6 +41,7 @@ export default function Register() {
     setIsLoading(true);
     try {
       await axios.post(`${BACKEND_URL}/api/auth/register`, {
+        name: name.trim(),
         email,
         password,
       }, {
@@ -85,6 +87,13 @@ export default function Register() {
         <p style={{ fontSize: '15px', color: '#6B7280', margin: '0 0 28px 0' }}>Join us today to get started.</p>
 
         <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ textAlign: 'left' }}>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Full Name</label>
+            <input type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} required maxLength={80}
+              style={{ width: '100%', height: '46px', paddingLeft: '14px', borderRadius: '10px', border: '1px solid #D1D5DB', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+
           <div style={{ textAlign: 'left' }}>
             <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Email Address</label>
             <div style={{ position: 'relative' }}>

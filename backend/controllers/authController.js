@@ -1,10 +1,12 @@
 // controllers/authController.js
 const Staff = require('../models/Staff');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sendOTPEmail = require('../utils/sendEmail');
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
 
 // Registration Controller
 exports.registerStaff = async(req, res) => {
@@ -135,5 +137,131 @@ exports.verifyOTP = async(req, res) => {
     } catch (error) {
         console.error('Error in verify route:', error);
         res.status(500).json({ error: 'Server error during verification' });
+    }
+};
+
+exports.approveBuyerToSeller = async(req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!mongoose.isValidObjectId(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+
+        const staff = await Staff.findById(userId);
+        if (!staff) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (staff.role !== 'buyer') {
+            return res.status(409).json({ message: 'Only buyer accounts can be verified as sellers' });
+        }
+
+        if (!staff.isVerified) {
+            return res.status(409).json({ message: 'The buyer must verify their email before seller approval' });
+        }
+
+        staff.role = 'seller';
+        await staff.save();
+
+        return res.status(200).json({
+            message: 'Buyer verified as seller successfully',
+            user: {
+                _id: staff._id,
+                name: staff.name,
+                email: staff.email,
+                role: staff.role,
+                createdAt: staff.createdAt,
+                isVerified: staff.isVerified
+            }
+        });
+    } catch (error) {
+        console.error('Error approving buyer as seller:', error);
+        return res.status(500).json({ message: 'Could not verify this buyer as a seller' });
+    }
+};
+
+exports.forgotPassword = async(req, res) => {
+    try {
+        const email = String(req.body.email || '').trim().toLowerCase();
+
+        if (!email || !isValidEmail(email)) {
+            return res.status(400).json({ message: 'Please enter a valid email address.' });
+        }
+
+        const staff = await Staff.findOne({ email });
+
+        if (!staff) {
+            return res.status(200).json({
+                message: 'If an account exists for this email, a reset code has been sent.'
+            });
+        }
+
+        const otp = generateOTP();
+        staff.otp = otp;
+        staff.otpExpiry = Date.now() + 10 * 60 * 1000;
+        await staff.save();
+
+        if (process.env.NODE_ENV !== 'test') {
+            await sendOTPEmail(staff.email, otp);
+        }
+
+        res.status(200).json({
+            message: 'If an account exists for this email, a reset code has been sent.',
+            email: staff.email
+        });
+    } catch (error) {
+        console.error('Error in forgot password route:', error);
+        res.status(500).json({ message: 'Server error while processing password reset request' });
+    }
+};
+
+exports.resetPassword = async(req, res) => {
+    try {
+        const { email, otp, password, confirmPassword } = req.body;
+        const normalizedEmail = String(email || '').trim().toLowerCase();
+
+        if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
+            return res.status(400).json({ message: 'Please provide a valid email address.' });
+        }
+
+        if (!otp || String(otp).trim().length !== 6) {
+            return res.status(400).json({ message: 'Please enter the 6-digit reset code.' });
+        }
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({ message: 'Passwords do not match.' });
+        }
+
+        const staff = await Staff.findOne({ email: normalizedEmail });
+
+        if (!staff) {
+            return res.status(400).json({ message: 'We could not find an account with that email.' });
+        }
+
+        if (staff.otp !== String(otp).trim()) {
+            return res.status(400).json({ message: 'The reset code is invalid.' });
+        }
+
+        if (!staff.otpExpiry || staff.otpExpiry < Date.now()) {
+            return res.status(400).json({ message: 'The reset code has expired. Please request a new one.' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        staff.password = await bcrypt.hash(password, salt);
+        staff.otp = null;
+        staff.otpExpiry = null;
+        await staff.save();
+
+        res.status(200).json({
+            message: 'Password reset successful. Please log in with your new password.'
+        });
+    } catch (error) {
+        console.error('Error in reset password route:', error);
+        res.status(500).json({ message: 'Server error while resetting password' });
     }
 };

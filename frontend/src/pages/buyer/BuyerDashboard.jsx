@@ -51,7 +51,7 @@ export default function BuyerDashboard() {
           <div style={styles.card}>
             <h4>Wishlist Items</h4>
             <span style={styles.cardVal}>{savedItems.length} Saved</span>
-            <small style={{ color: '#64748b' }}>Ready to purchase</small>
+            <small style={{ color: '#1e118a' }}>Ready to purchase</small>
           </div>
           <div style={styles.card}>
             <h4>Reward Credits</h4>
@@ -106,16 +106,16 @@ export default function BuyerDashboard() {
 }
 
 const styles = {
-  container: { minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Inter', sans-serif", color: '#1e293b' },
+  container: { minHeight: '100vh', backgroundColor: '#f8f6f6', fontFamily: "'Inter', sans-serif", color: '#1e293b' },
   navbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0' },
-  logo: { fontSize: '22px', fontWeight: 'bold', color: '#0f172a' },
+  logo: { fontSize: '22px', fontWeight: 'bold', color: '#2a5ed8' },
   searchBar: { flexGrow: 0.5 },
   searchInput: { width: '100%', padding: '10px 16px', borderRadius: '20px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' },
   navRight: { display: 'flex', gap: '12px', alignItems: 'center' },
-  cartBtn: { backgroundColor: '#f1f5f9', border: 'none', padding: '8px 16px', borderRadius: '20px', fontWeight: '600', cursor: 'pointer' },
-  logoutBtn: { backgroundColor: 'transparent', color: '#64748b', border: 'none', cursor: 'pointer', fontSize: '14px' },
+  cartBtn: { backgroundColor: '#1a66b3', border: 'none', padding: '8px 16px', borderRadius: '20px', fontWeight: '600', cursor: 'pointer' },
+  logoutBtn: { backgroundColor: 'transparent', color: '#0d5dcc', border: 'none', cursor: 'pointer', fontSize: '14px' },
   mainContent: { maxWidth: '1100px', margin: '0 auto', padding: '32px 16px' },
-  welcomeBanner: { backgroundColor: '#1e293b', color: '#ffffff', padding: '28px', borderRadius: '12px', marginBottom: '28px' },
+  welcomeBanner: { backgroundColor: '#63615e', color: '#ffffff', padding: '28px', borderRadius: '12px', marginBottom: '28px' },
   overviewCards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' },
   card: { backgroundColor: '#ffffff', padding: '20px', borderRadius: '10px', border: '1px solid #e2e8f0' },
   cardVal: { fontSize: '22px', fontWeight: 'bold', margin: '6px 0', display: 'block' },
@@ -125,7 +125,7 @@ const styles = {
   orderHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
   orderFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '12px' },
   tagTransit: { backgroundColor: '#dbeafe', color: '#1e40af', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' },
-  tagDelivered: { backgroundColor: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' },
+  tagDelivered: { backgroundColor: '#dcfce7', color: '#097031', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' },
   trackBtn: { backgroundColor: '#0f172a', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' },
   wishlistGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', marginTop: '16px' },
   wishlistCard: { backgroundColor: '#ffffff', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '8px' },

@@ -2,13 +2,15 @@
 const express = require('express');
 const router = express.Router();
 const Staff = require('../models/Staff');
-const { registerStaff, loginStaff, verifyOTP } = require('../controllers/authController');
+const { registerStaff, loginStaff, verifyOTP, forgotPassword, resetPassword, approveBuyerToSeller } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 // Public Routes
 router.post('/register', registerStaff);
 router.post('/login', loginStaff);
 router.post('/verify-otp', verifyOTP);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 router.post('/logout', (req, res) => {
     if (req.session) {
@@ -31,6 +33,8 @@ router.get('/admin/users', protect, authorize('admin'), async(req, res) => {
         res.status(500).json({ message: 'Failed to fetch users' });
     }
 });
+
+router.patch('/admin/users/:userId/approve-seller', protect, authorize('admin'), approveBuyerToSeller);
 
 // Seller & Admin Shared Routes
 router.get('/products/manage', protect, authorize('seller', 'admin'), (req, res) => {

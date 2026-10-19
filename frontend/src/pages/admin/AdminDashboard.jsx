@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './AdminDashboard.css';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(true);
+  const [accountsError, setAccountsError] = useState('');
+  const [accountsNotice, setAccountsNotice] = useState('');
+  const [updatingAccountId, setUpdatingAccountId] = useState(null);
 
   const [stats] = useState({
-    totalUsers: 1420,
-    activeSellers: 88,
     totalGMV: '$42,500',
     pendingApprovals: 5,
   });
@@ -24,13 +31,80 @@ export default function AdminDashboard() {
     { id: 4, action: 'Flagged review resolved by Admin', time: '3 hours ago', type: 'warning' },
   ]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    const token = localStorage.getItem('jwt_token');
+
+    if (!token) {
+      setAccountsError('Please log in again to view accounts.');
+      setAccountsLoading(false);
+      return () => controller.abort();
+    }
+
+    axios.get(`${BACKEND_URL}/api/auth/admin/users`, {
+      signal: controller.signal,
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'ngrok-skip-browser-warning': 'true',
+      },
+    }).then((response) => {
+      setAccounts(Array.isArray(response.data) ? response.data : []);
+      setAccountsError('');
+    }).catch((error) => {
+      if (!controller.signal.aborted) {
+        setAccountsError(error.response?.data?.message || 'Could not load accounts.');
+      }
+    }).finally(() => {
+      if (!controller.signal.aborted) {
+        setAccountsLoading(false);
+      }
+    });
+
+    return () => controller.abort();
+  }, []);
+
+  const activeSellers = accounts.filter((account) => account.role === 'seller').length;
+
+  const handleVerifySeller = async (account) => {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+      setAccountsError('Please log in again to verify accounts.');
+      return;
+    }
+
+    setUpdatingAccountId(account._id);
+    try {
+      const response = await axios.patch(
+        `${BACKEND_URL}/api/auth/admin/users/${account._id}/approve-seller`,
+        {},
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true',
+          },
+        }
+      );
+
+      setAccounts((currentAccounts) => currentAccounts.map((currentAccount) => (
+        currentAccount._id === account._id ? { ...currentAccount, ...response.data.user } : currentAccount
+      )));
+      setAccountsNotice(`${account.name || account.email} is now a seller. They must sign in again to access the seller dashboard.`);
+    } catch (error) {
+      window.alert(error.response?.data?.message || 'Could not verify this buyer as a seller.');
+    } finally {
+      setUpdatingAccountId(null);
+    }
+  };
+
   const handleApprove = (id) => {
     setPendingSellers(pendingSellers.filter((s) => s.id !== id));
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('user_data');
     navigate('/login');
   };
 
@@ -72,12 +146,12 @@ export default function AdminDashboard() {
         <section style={styles.statsGrid}>
           <div style={styles.card}>
             <div style={styles.cardTitle}>Total Users</div>
-            <div style={styles.cardVal}>{stats.totalUsers}</div>
+            <div style={styles.cardVal}>{accountsLoading ? '...' : accounts.length}</div>
             <span style={styles.cardTrend}>+12% this month</span>
           </div>
           <div style={styles.card}>
             <div style={styles.cardTitle}>Active Sellers</div>
-            <div style={styles.cardVal}>{stats.activeSellers}</div>
+            <div style={styles.cardVal}>{accountsLoading ? '...' : activeSellers}</div>
             <span style={styles.cardTrend}>+4 new this week</span>
           </div>
           <div style={styles.card}>
@@ -142,6 +216,56 @@ export default function AdminDashboard() {
             </ul>
           </section>
         </div>
+
+        <section id="users" className="admin-accounts-panel">
+          <div className="admin-accounts-heading">
+            <div>
+              <span className="admin-accounts-kicker">DIRECTORY</span>
+              <h2>Created accounts</h2>
+            </div>
+            <span className="admin-accounts-count">{accountsLoading ? 'Loading' : `${accounts.length} accounts`}</span>
+          </div>
+
+          {accountsNotice && <p className="admin-accounts-message admin-accounts-notice" role="status">{accountsNotice}</p>}
+
+          {accountsError ? (
+            <p className="admin-accounts-message admin-accounts-error" role="alert">{accountsError}</p>
+          ) : accountsLoading ? (
+            <p className="admin-accounts-message" role="status">Loading accounts...</p>
+          ) : accounts.length === 0 ? (
+            <p className="admin-accounts-message">No accounts have been created yet.</p>
+          ) : (
+            <div className="admin-accounts-table-wrap">
+              <table className="admin-accounts-table">
+                <thead>
+                  <tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Verification</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  {accounts.map((account) => (
+                    <tr key={account._id}>
+                      <td>{account.name || 'Name not provided'}</td>
+                      <td>{account.email}</td>
+                      <td><span className={`admin-account-role admin-account-role-${String(account.role || 'unknown').toLowerCase()}`}>{account.role || 'Unknown'}</span></td>
+                      <td>{account.createdAt ? new Date(account.createdAt).toLocaleDateString() : '—'}</td>
+                      <td>{account.isVerified ? 'Verified' : 'Pending'}</td>
+                      <td>
+                        {account.role === 'buyer' && account.isVerified ? (
+                          <button
+                            className="admin-verify-seller-button"
+                            disabled={updatingAccountId === account._id}
+                            onClick={() => handleVerifySeller(account)}
+                          >
+                            {updatingAccountId === account._id ? 'Verifying...' : 'Verify as seller'}
+                          </button>
+                        ) : account.role === 'buyer' ? 'Verify email first' : account.role === 'seller' ? 'Seller verified' : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
